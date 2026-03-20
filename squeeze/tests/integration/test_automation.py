@@ -34,16 +34,22 @@ def test_scan_automation_triggers():
             # Mock exporters and notifiers
             with patch("squeeze.cli.ReportExporter") as mock_exporter_cls, \
                  patch("squeeze.cli.plot_ticker") as mock_plot, \
-                 patch("squeeze.cli.LineNotifier") as mock_notifier_cls:
-                
+                 patch("squeeze.cli.LineNotifier") as mock_notifier_cls, \
+                 patch("squeeze.cli.EmailNotifier") as mock_email_cls:
+
                 mock_exporter = MagicMock()
                 mock_exporter_cls.return_value = mock_exporter
                 mock_exporter.export.return_value = {"csv": "path/to/csv"}
-                
+                mock_exporter.render_summary.return_value = "# Chinese Summary"
+
                 mock_notifier = MagicMock()
                 mock_notifier_cls.return_value = mock_notifier
                 mock_notifier.send_summary.return_value = True
-                
+
+                mock_email = MagicMock()
+                mock_email_cls.return_value = mock_email
+                mock_email.send_email.return_value = True
+
                 # Run the command
                 result = runner.invoke(app, [
                     "scan", 
@@ -52,20 +58,22 @@ def test_scan_automation_triggers():
                     "--plot", 
                     "--notify"
                 ])
-                
+
                 # Check output
                 assert result.exit_code == 0
                 assert "Scanning for squeeze pattern" in result.stdout
                 assert "2330.TW" in result.stdout
                 assert "Exporting results" in result.stdout
                 assert "Generating charts" in result.stdout
-                assert "Sending LINE notification" in result.stdout
-                assert "LINE notification sent" in result.stdout
-                
+                assert "Sending notifications" in result.stdout
+                assert "LINE notification sent successfully" in result.stdout
+                assert "Email notification sent successfully" in result.stdout
+
                 # Verify calls
                 mock_exporter.export.assert_called_once()
                 mock_plot.assert_called_once()
                 mock_notifier.send_summary.assert_called_once()
+                mock_email.send_email.assert_called_once()
                 
                 # Verify summary content
                 args, _ = mock_notifier.send_summary.call_args

@@ -89,12 +89,12 @@ def test_to_markdown(exporter, mock_results, tmp_path):
     with open(md_path, 'r', encoding='utf-8') as f:
         content = f.read()
         
-        assert "# Squeeze Stock Screener - Scan Summary" in content
+        assert "# Squeeze 技術指標掃描 - 每日摘要" in content
         assert "AAPL" in content
         assert "MSFT" in content
         assert "GOOGL" in content
-        assert "Active" in content
-        assert "No" in content
+        assert "活躍" in content
+        assert "否" in content
 
 def test_export_empty_results(exporter, tmp_path):
     csv_path = tmp_path / "empty.csv"

@@ -13,7 +13,7 @@ from squeeze.engine.patterns import detect_squeeze, detect_houyi_shooting_sun, d
 from squeeze.engine.scanner import MarketScanner
 from squeeze.report.exporter import ReportExporter
 from squeeze.report.visualizer import plot_ticker
-from squeeze.report.notifier import LineNotifier
+from squeeze.report.notifier import LineNotifier, EmailNotifier
 
 app = typer.Typer(help="Squeeze Stock Screener for Taiwan Market")
 console = Console()
@@ -194,7 +194,9 @@ def scan(
 
     # Handle Notifications
     if notify:
-        console.print("[yellow]Sending LINE notification...[/yellow]")
+        console.print("[yellow]Sending notifications...[/yellow]")
+        
+        # 1. LINE Notification (Short Summary)
         notifier = LineNotifier()
         msg = f"Squeeze Scan Complete: {pattern}\nFound {len(matched)} matches"
         if matched:
@@ -211,6 +213,17 @@ def scan(
             console.print("[green]LINE notification sent successfully.[/green]")
         else:
             console.print("[red]Failed to send LINE notification.[/red]")
+
+        # 2. Email Notification (Full Markdown Report)
+        email_notifier = EmailNotifier()
+        exporter = ReportExporter()
+        report_content = exporter.render_summary(matched)
+        subject = f"Squeeze 掃描報告 ({pattern}) - {pd.Timestamp.now().strftime('%Y-%m-%d')}"
+        
+        if email_notifier.send_email(subject, report_content):
+            console.print("[green]Email notification sent successfully.[/green]")
+        else:
+            console.print("[red]Failed to send email notification.[/red]")
 
 @app.command(name="fetch-tickers")
 def fetch_tickers():

@@ -30,6 +30,9 @@ jobs:
         env:
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_RECIPIENT: ${{ secrets.SMTP_RECIPIENT }}
         run: |
           python -m squeeze scan --export --plot --notify --output-dir squeeze/exports
 

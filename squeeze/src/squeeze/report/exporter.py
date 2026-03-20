@@ -90,23 +90,35 @@ class ReportExporter:
 
     def to_markdown(self, results: List[Dict[str, Any]], path: Path) -> None:
         """Renders the Markdown summary using Jinja2."""
+        content = self.render_summary(results)
+        
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+    def render_summary(self, results: List[Dict[str, Any]]) -> str:
+        """Renders the summary content as a string."""
         template = self.jinja_env.get_template("summary.md.j2")
         
         # Prepare data for template
-        # Extract top picks based on some metric (e.g., Squeeze status, momentum)
-        # For now, let's just pass all results and a subset
-        top_picks = [r for r in results if r.get('squeeze_active')]
+        top_picks = [r for r in results if r.get('is_squeezed') or r.get('is_houyi') or r.get('is_whale')]
         if not top_picks:
             top_picks = results[:5] if len(results) > 5 else results
             
         render_data = {
             "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "results": results,
-            "top_picks": top_picks,
+            "results": [self._format_result(r) for r in results],
+            "top_picks": [self._format_result(r) for r in top_picks],
             "count": len(results)
         }
         
-        content = template.render(**render_data)
-        
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(content)
+        return template.render(**render_data)
+
+    def _format_result(self, r: Dict[str, Any]) -> Dict[str, Any]:
+        """Ensures common keys exist for the template."""
+        return {
+            "ticker": r.get('ticker'),
+            "close": f"{r.get('Close', 0):.2f}",
+            "momentum": r.get('momentum') or r.get('daily_momentum') or 0,
+            "energy": r.get('energy_level', 0),
+            "squeeze_active": r.get('is_squeezed') or r.get('is_houyi') or r.get('is_whale')
+        }
