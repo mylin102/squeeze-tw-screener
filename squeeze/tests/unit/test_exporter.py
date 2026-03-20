@@ -39,8 +39,9 @@ def test_export_creates_directory_structure(exporter, mock_results, tmp_path):
     paths = exporter.export(mock_results, output_dir)
     
     # Check if the date directory was created
-    from datetime import datetime
-    date_str = datetime.now().strftime("%Y-%m-%d")
+    from datetime import datetime, timedelta, timezone
+    now_tst = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8)))
+    date_str = now_tst.strftime("%Y-%m-%d")
     expected_dir = output_dir / date_str
     
     assert expected_dir.exists()

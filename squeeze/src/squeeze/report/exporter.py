@@ -1,6 +1,6 @@
 import csv
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from jinja2 import Environment, PackageLoader, FileSystemLoader
@@ -24,23 +24,21 @@ class ReportExporter:
                 autoescape=True
             )
 
+    def _get_taiwan_now(self) -> datetime:
+        """Returns the current time in Taiwan (UTC+8)."""
+        return datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8)))
+
     def export(self, results: List[Dict[str, Any]], output_base_dir: Path) -> Dict[str, Path]:
         """
         Exports the results to CSV, JSON, and Markdown files in a date-stamped subdirectory.
-        
-        Args:
-            results: A list of result dictionaries from a scan.
-            output_base_dir: The base directory where exports should be stored.
-            
-        Returns:
-            A dictionary containing the paths to the exported files.
         """
         # Create date-stamped subdirectory
-        date_str = datetime.now().strftime("%Y-%m-%d")
+        now = self._get_taiwan_now()
+        date_str = now.strftime("%Y-%m-%d")
         export_dir = output_base_dir / date_str
         export_dir.mkdir(parents=True, exist_ok=True)
         
-        timestamp = datetime.now().strftime("%H%M%S")
+        timestamp = now.strftime("%H%M%S")
         
         # Define file paths
         csv_path = export_dir / f"scan_results_{timestamp}.csv"
@@ -61,9 +59,6 @@ class ReportExporter:
     def to_csv(self, results: List[Dict[str, Any]], path: Path) -> None:
         """Saves results to a flat CSV file."""
         if not results:
-            # Create an empty file with headers if results are empty
-            # We assume results would have some standard structure if they existed
-            # For now, let's just return if empty to avoid issues
             with open(path, 'w', newline='', encoding='utf-8') as f:
                 f.write("")
             return
@@ -79,7 +74,7 @@ class ReportExporter:
         """Saves results to JSON with metadata (timestamp, patterns)."""
         data = {
             "metadata": {
-                "timestamp": datetime.now().isoformat(),
+                "timestamp": self._get_taiwan_now().isoformat(),
                 "count": len(results),
             },
             "results": results
@@ -105,7 +100,7 @@ class ReportExporter:
             top_picks = results[:5] if len(results) > 5 else results
             
         render_data = {
-            "date": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "date": self._get_taiwan_now().strftime("%Y-%m-%d %H:%M:%S") + " (TST)",
             "results": [self._format_result(r) for r in results],
             "top_picks": [self._format_result(r) for r in top_picks],
             "count": len(results)
