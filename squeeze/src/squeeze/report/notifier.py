@@ -3,7 +3,7 @@ import logging
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from typing import Optional
+from typing import Optional, List
 
 try:
     from linebot.v3.messaging import (
@@ -60,6 +60,7 @@ class LineNotifier:
 class EmailNotifier:
     """
     A class to send notifications via Email (SMTP).
+    Supports multiple recipients via comma-separated string.
     """
     def __init__(
         self, 
@@ -73,20 +74,27 @@ class EmailNotifier:
         self.smtp_port = smtp_port or int(os.environ.get('SMTP_PORT', '587'))
         self.username = username or os.environ.get('SMTP_USERNAME')
         self.password = password or os.environ.get('SMTP_PASSWORD')
-        self.recipient = recipient or os.environ.get('SMTP_RECIPIENT', 'mylim102@gmail.com')
+        # recipient can be "mail1@example.com, mail2@example.com"
+        self.recipient_str = recipient or os.environ.get('SMTP_RECIPIENT', 'mylin102@gmail.com')
+
+    def _get_recipient_list(self) -> List[str]:
+        if not self.recipient_str:
+            return []
+        return [r.strip() for r in self.recipient_str.split(',') if r.strip()]
 
     def send_email(self, subject: str, body: str, is_html: bool = False) -> bool:
         """
-        Send an email notification.
+        Send an email notification to one or more recipients.
         """
-        if not all([self.username, self.password, self.recipient]):
-            logger.warning("Email credentials or recipient not set. Skipping email.")
+        recipients = self._get_recipient_list()
+        if not all([self.username, self.password]) or not recipients:
+            logger.warning("Email credentials or recipients not set. Skipping email.")
             return False
 
         try:
             msg = MIMEMultipart()
             msg['From'] = self.username
-            msg['To'] = self.recipient
+            msg['To'] = ", ".join(recipients)
             msg['Subject'] = subject
 
             msg.attach(MIMEText(body, 'html' if is_html else 'plain'))
@@ -94,10 +102,10 @@ class EmailNotifier:
             server = smtplib.SMTP(self.smtp_server, self.smtp_port)
             server.starttls()
             server.login(self.username, self.password)
-            server.send_message(msg)
+            server.sendmail(self.username, recipients, msg.as_string())
             server.quit()
             
-            logger.info(f"Email sent successfully to {self.recipient}.")
+            logger.info(f"Email sent successfully to {len(recipients)} recipient(s).")
             return True
         except Exception as e:
             logger.error(f"Failed to send email: {e}")
