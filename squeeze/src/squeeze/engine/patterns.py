@@ -36,6 +36,7 @@ def detect_squeeze(df: pd.DataFrame) -> dict:
         'energy_level': int(latest_bar['Energy_Level']),
         'momentum': float(latest_bar['Momentum']),
         'fired': bool(latest_bar['Fired']),
+        'Signal': str(latest_bar.get('Signal', '觀望')),
         'timestamp': str(latest_bar.name)
     }
 
@@ -119,7 +120,8 @@ def detect_houyi_shooting_sun(df: pd.DataFrame) -> dict:
         'rally_pct': float(rally_pct),
         'fib_level': float(fib_level),
         'squeeze_on': squeeze_on,
-        'shooting_star': shooting_star
+        'shooting_star': shooting_star,
+        'Signal': str(latest_bar.get('Signal', '觀望'))
     }
 
 def detect_whale_trading(df_daily: pd.DataFrame) -> dict:
@@ -185,5 +187,6 @@ def detect_whale_trading(df_daily: pd.DataFrame) -> dict:
         'daily_squeeze': daily_sq,
         'weekly_squeeze': weekly_sq,
         'daily_momentum': daily_mom,
-        'weekly_momentum': weekly_mom
+        'weekly_momentum': weekly_mom,
+        'Signal': str(latest_daily.get('Signal', '觀望'))
     }
