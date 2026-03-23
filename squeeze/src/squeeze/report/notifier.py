@@ -94,7 +94,9 @@ class EmailNotifier:
         try:
             msg = MIMEMultipart()
             msg['From'] = self.username
-            msg['To'] = ", ".join(recipients)
+            # Use Bcc effect by not putting multiple recipients in the 'To' header.
+            # We set 'To' to the sender themselves so each recipient only sees the sender.
+            msg['To'] = self.username
             msg['Subject'] = subject
 
             msg.attach(MIMEText(body, 'html' if is_html else 'plain'))
