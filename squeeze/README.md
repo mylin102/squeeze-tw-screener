@@ -1,44 +1,53 @@
-# Squeeze Stock Screener (Taiwan Market) v1.1
+# Squeeze Stock Screener (TW & US Market) v1.2
 
-專為台灣股市設計的自動化標的篩選工具，採用 Squeeze Momentum 擠壓動能邏輯與進階形態識別技術。
+一個強大的自動化標的篩選與績效追蹤工具，採用 Squeeze Momentum 擠壓動能邏輯，同時支援台灣 (TW) 與美國 (US) 股市。
 
-## 核心功能
-- **高效能掃描**：採用混合多執行緒 (I/O) 與多處理器 (CPU) 引擎，快速掃描全台股。
-- **進階形態識別**：支援 TTM Squeeze、后羿射日 (Houyi Shooting Sun) 及大鯨魚交易 (Whale Trading) 形態。
-- **明確交易信號**：每檔個股皆提供明確的操作建議，如「強烈買入 (爆發)」、「觀察 (跌勢收斂)」或「觀望」。
-- **中文支援**：完整支援台灣上市櫃公司之中文名稱顯示。
-- **多維度過濾**：可根據市值、成交量、股價區間及百分比評分 (Value Score) 進行篩選。
-- **專業報告系統**：自動生成中文 Markdown 摘要報告，並支援匯出 CSV 與 JSON。
-- **自動化通知**：整合 LINE Bot 與 Email (SMTP) 通知，支援多收件人設定。
-- **雲端視覺化**：每日自動生成專業的 K 線圖並附帶技術指標疊加。
+## 🚀 核心亮點
+- **雙市場支援**：完整支援台股（上市櫃）與美股（S&P 500 等）的技術形態掃描。
+- **30 天績效追蹤**：自動記錄建議標的的進場價格，並進行為期 **30 天** 的即時表現追蹤，透明化顯示歷史報酬率。
+- **美化 HTML 報告**：Email 通知採用全新 HTML 引擎轉換，內嵌 CSS 樣式確保表格在手機與電腦端均能整齊呈現（解決 Markdown 格式破碎問題）。
+- **高效形態偵測**：
+    - **TTM Squeeze**: 偵測布林通道與肯特納通道的擠壓狀況。
+    - **后羿射日 (Houyi)**: 鎖定強力拉回後的斐波那契支撐點。
+    - **大鯨魚交易 (Whale)**: 多週期（日、週）動能共振篩選。
+- **多維度過濾**：可根據市值、平均成交量、價值評分 (Value Score) 及股價區間精確過濾。
+- **自動化運維**：完美整合 GitHub Actions，每日收盤後自動掃描、繪圖並發送多管道通報。
 
-## 快速開始
+## 🛠 快速開始
 
-### 安裝
+### 1. 安裝環境
 ```bash
-pip install ./squeeze
+pip install .
 ```
 
-### 執行掃描
+### 2. 執行掃描
 ```bash
-# 掃描目前的擠壓動能標的，並生成圖表與發送通知
+# 掃描目前的擠壓動能標的 (預設台股)，並生成圖表與發送通報
 squeeze scan --export --plot --notify
+
+# 掃描特定的形態 (如后羿射日)
+squeeze scan --pattern houyi --export --notify
 ```
 
-## 自動化設定 (GitHub Actions)
-專案預設包含 `.github/workflows/daily_scan.yml`，於每個交易日 15:30 (TST) 自動執行。
+### 3. 分析單一標的
+```bash
+# 即時分析指定股票的擠壓能量與動能
+squeeze analyze --ticker 2330.TW
+squeeze analyze --ticker NVDA
+```
 
-### 必要的 GitHub Secrets
-若要啟用通知，請在 GitHub 倉庫設定以下 Secrets：
-- **`SMTP_USERNAME`**: 您的 Gmail 地址。
-- **`SMTP_PASSWORD`**: 您的 Gmail 應用程式密碼。
-- **`SMTP_RECIPIENT`**: (選填) 收件人信箱，多個請用逗號隔開。
-- **`LINE_CHANNEL_ACCESS_TOKEN`**: (選填) LINE Bot 權杖。
-- **`LINE_USER_ID`**: (選填) 您的 LINE ID。
+## 📈 績效追蹤系統
+系統會自動維護一個 `recommendations.csv` 資料庫：
+- **自動記錄**：每次掃描出的 Top 10 標底會自動存入追蹤清單。
+- **即時更新**：每日執行時自動從市場抓取最新現價並更新報酬率。
+- **生命週期**：追蹤期由 14 天延長至 **30 天**，期滿後自動轉入歷史紀錄。
 
-## 開發與測試
-- **執行測試**: `python3 -m pytest squeeze/tests/`
-- **程式碼檢查**: `ruff check .`
+## ✉️ 報告與通知
+- **LINE**: 快速摘要通知，包含今日最強標的。
+- **Email**: 專業的 HTML 格式詳細報告，包含：
+    - 今日建議標的清單 (Top 10)
+    - 買入/賣出標的績效追蹤表 (30天)
+    - 清楚的進場價、現價與百分比變動。
 
 ---
 *由 Gemini CLI 生成與維護*
