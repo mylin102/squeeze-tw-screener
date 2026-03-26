@@ -1,0 +1,248 @@
+{
+  "metadata": {
+    "timestamp": "2026-03-26T11:50:21.645666+08:00",
+    "count": 24
+  },
+  "results": [
+    {
+      "is_squeezed": true,
+      "energy_level": 1,
+      "momentum": 0.17500019073486325,
+      "fired": false,
+      "Signal": "買入 (動能增強)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1260.TWO",
+      "name": "富味鄉"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 1,
+      "momentum": 0.00833320617675781,
+      "fired": false,
+      "Signal": "買入 (動能增強)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1324.TW",
+      "name": "地球"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": 0.12166674931844075,
+      "fired": false,
+      "Signal": "觀望 (動能減弱)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1213.TW",
+      "name": "大飲"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -0.766665776570638,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1225.TW",
+      "name": "福懋油"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": 0.24999936421712238,
+      "fired": false,
+      "Signal": "買入 (動能增強)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1229.TW",
+      "name": "聯華"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": 0.11666679382324217,
+      "fired": false,
+      "Signal": "買入 (動能增強)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1219.TW",
+      "name": "福壽"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -1.3333333333333333,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1232.TW",
+      "name": "大統益"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -1.0083328882853189,
+      "fired": false,
+      "Signal": "賣出 (動能轉弱)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1236.TW",
+      "name": "宏亞"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -0.08333333333333329,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1264.TWO",
+      "name": "德麥"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": 0.4666665395100912,
+      "fired": false,
+      "Signal": "觀望 (動能減弱)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1240.TWO",
+      "name": "茂生農經"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -2.583333333333333,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-25 00:00:00",
+      "ticker": "1268.TWO",
+      "name": "漢來美食"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -1.4333343505859375,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1301.TW",
+      "name": "台塑"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": 0.625,
+      "fired": false,
+      "Signal": "觀望 (動能減弱)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1312.TW",
+      "name": "國喬"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -0.24999999999999997,
+      "fired": false,
+      "Signal": "賣出 (動能轉弱)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1315.TW",
+      "name": "達新"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": 0.3666667938232422,
+      "fired": false,
+      "Signal": "買入 (動能增強)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1307.TW",
+      "name": "三芳"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -0.27499961853027344,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1321.TW",
+      "name": "大洋"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": 0.04166650772094728,
+      "fired": false,
+      "Signal": "觀望 (動能減弱)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1313.TW",
+      "name": "聯成"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -0.14333327611287433,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1413.TW",
+      "name": "宏洲"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -0.4833335876464844,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-25 00:00:00",
+      "ticker": "1418.TW",
+      "name": "東華"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": 0.25,
+      "fired": false,
+      "Signal": "買入 (動能增強)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1436.TW",
+      "name": "華友聯"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -0.008333206176757812,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1416.TW",
+      "name": "廣豐"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": 0.058333396911621066,
+      "fired": false,
+      "Signal": "買入 (動能增強)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1439.TW",
+      "name": "雋揚"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -0.06333335240681966,
+      "fired": false,
+      "Signal": "賣出 (動能轉弱)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1441.TW",
+      "name": "大東"
+    },
+    {
+      "is_squeezed": true,
+      "energy_level": 0,
+      "momentum": -0.42499987284342444,
+      "fired": false,
+      "Signal": "觀察 (跌勢收斂)",
+      "timestamp": "2026-03-26 00:00:00",
+      "ticker": "1451.TW",
+      "name": "年興"
+    }
+  ]
+}
