@@ -122,6 +122,34 @@ class ReportExporter:
         }
 
         return template.render(**render_data)
+
+    def render_html_summary(self, 
+                            buy_results: List[Dict[str, Any]] = None, 
+                            sell_results: List[Dict[str, Any]] = None,
+                            tracking_buys: Optional[List[Dict[str, Any]]] = None,
+                            tracking_sells: Optional[List[Dict[str, Any]]] = None) -> str:
+        """Renders the HTML summary content for high-quality emails."""
+        template = self.jinja_env.get_template("summary.html.j2")
+
+        buy_results = buy_results or []
+        sell_results = sell_results or []
+
+        # Take Top 10 for display
+        top_buys = sorted(buy_results, key=lambda x: x.get('momentum', 0), reverse=True)[:10]
+        top_sells = sorted(sell_results, key=lambda x: x.get('momentum', 0), reverse=False)[:10]
+        
+        render_data = {
+            "date": self._get_taiwan_now().strftime("%Y-%m-%d %H:%M:%S") + " (TST)",
+            "buy_results": [self._format_result(r) for r in top_buys],
+            "buy_count": len(buy_results),
+            "sell_results": [self._format_result(r) for r in top_sells],
+            "sell_count": len(sell_results),
+            "tracking_buys": tracking_buys or [],
+            "tracking_sells": tracking_sells or []
+        }
+
+        return template.render(**render_data)
+
     def _format_result(self, r: Dict[str, Any]) -> Dict[str, Any]:
         """Ensures common keys exist for the template."""
         return {
