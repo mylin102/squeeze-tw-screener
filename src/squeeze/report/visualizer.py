@@ -66,9 +66,9 @@ def plot_ticker(ticker_df: pd.DataFrame, ticker_symbol: str, output_path: str):
     
     # Squeeze Dots (Red when Squeeze_On is True, Green when False)
     squeeze_on = df['Squeeze_On']
-    dot_colors = ['black' if val else 'gray' for val in squeeze_on]
+    dot_colors = ['black' if val else '#cccccc' for val in squeeze_on]
     # Plot dots at 0 on the momentum panel
-    plots.append(mpf.make_addplot(np.full(len(df), df['Momentum'].abs().max() * 0.05), type='scatter', markersize=100, marker='o', 
+    plots.append(mpf.make_addplot(np.full(len(df), -df['Momentum'].abs().max() * 0.1), type='scatter', markersize=100, marker='s', 
                                   color=dot_colors, panel=1, secondary_y=False))
 
     # Ensure output directory exists
