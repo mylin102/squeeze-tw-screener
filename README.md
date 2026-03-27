@@ -1,6 +1,6 @@
-# Squeeze Stock Screener (Taiwan Market) v1.2.1
+# Squeeze TW Screener v1.2.1
 
-專為台灣股市設計的自動化標的篩選工具，採用 Squeeze Momentum 擠壓動能邏輯與進階形態識別技術。
+專為台灣股市設計的自動化標的篩選工具，採用 Squeeze Momentum 擠壓動能邏輯與進階形態識別技術。對外命名與美股版 `squeeze-us` 對齊，台股命令統一為 `squeeze-tw`。
 
 ## 核心功能
 - **高效能掃描**：採用混合多執行緒 (I/O) 與多處理器 (CPU) 引擎，快速掃描全台股 (包含上市、上櫃、興櫃)。
@@ -21,7 +21,7 @@ pip install ./squeeze
 ### 執行掃描
 ```bash
 # 掃描目前的擠壓動能標的，並生成圖表與發送通知
-squeeze scan --export --plot --notify
+squeeze-tw scan --export --plot --notify
 ```
 
 ### 檢視策略績效

@@ -12,7 +12,7 @@ from squeeze.report.notifier import LineNotifier, EmailNotifier
 from squeeze.report.performance import PerformanceTracker
 from squeeze.report.tracking_analysis import build_tracking_report, format_tracking_report, load_tracking_frame
 
-app = typer.Typer(help="Squeeze Stock Screener for Taiwan Market")
+app = typer.Typer(help="Squeeze TW Screener for Taiwan Market")
 console = Console()
 
 

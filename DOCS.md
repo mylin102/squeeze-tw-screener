@@ -1,4 +1,4 @@
-# Squeeze Stock Screener 技術文件 v1.2.1 (Taiwan Market)
+# Squeeze TW Screener 技術文件 v1.2.1 (Taiwan Market)
 
 ## 專案概述
 本專案是一個基於 Python 的自動化股市掃描系統，旨在透過 Squeeze Momentum (擠壓動能) 指標及進階形態識別，篩選出具備爆發潛力的交易標的。支援台灣上市、上櫃及興櫃市場。
