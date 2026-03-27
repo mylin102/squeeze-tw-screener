@@ -43,6 +43,30 @@
 *   **附件**: 自動夾帶 Top 15 潛力標的的 PNG 線圖。
 *   **LINE 通知**: 即時發送掃描摘要與績效追蹤概況。
 
+## 績效追蹤與策略檢視
+
+### 追蹤欄位
+`recommendations.csv` 現在會額外保存：
+*   `pattern`
+*   `momentum`
+*   `prev_momentum`
+*   `energy_level`
+*   `squeeze_on`
+*   `fired`
+*   `market_regime`
+*   `benchmark_ticker`
+*   `strategy_return_pct`
+
+### 保留規則
+*   `tracking` 中的主動追蹤資料仍限制為最新 25 筆。
+*   `completed` 的歷史資料會保留，供後續檢視策略是否需要修正。
+
+### 分析命令
+```bash
+python3 scripts/analyze_tracking.py --csv recommendations.csv
+PYTHONPATH=src python3 -m squeeze.cli analyze-tracking --csv recommendations.csv
+```
+
 ## 檔案結構
 *   `src/squeeze/data/`: 數據抓取邏輯 (yfinance, ISIN)。
 *   `src/squeeze/engine/`: 核心運算引擎 (Indicators, Patterns)。
