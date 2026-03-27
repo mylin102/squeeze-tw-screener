@@ -28,7 +28,7 @@ class ReportExporter:
         """Returns the current time in Taiwan (UTC+8)."""
         return datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8)))
 
-    def export(self, results: List[Dict[str, Any]], output_base_dir: Path) -> Dict[str, Path]:
+    def export(self, results: List[Dict[str, Any]], output_base_dir: Path, extra_sections: Optional[Dict[str, List[Dict[str, Any]]]] = None) -> Dict[str, Path]:
         """
         Exports the results to CSV, JSON, and Markdown files in a date-stamped subdirectory.
         """
@@ -48,7 +48,7 @@ class ReportExporter:
         # Execute exports
         self.to_csv(results, csv_path)
         self.to_json(results, json_path)
-        self.to_markdown(results, md_path)
+        self.to_markdown(results, md_path, extra_sections=extra_sections)
         
         return {
             "csv": csv_path,
@@ -83,7 +83,7 @@ class ReportExporter:
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
 
-    def to_markdown(self, results: List[Dict[str, Any]], path: Path) -> None:
+    def to_markdown(self, results: List[Dict[str, Any]], path: Path, extra_sections: Optional[Dict[str, List[Dict[str, Any]]]] = None) -> None:
         """Renders the Markdown summary using Jinja2."""
         # For backward compatibility, we split the results into buy/sell sections
         buy_signals = ["強烈買入 (爆發)", "買入 (動能增強)", "觀察 (跌勢收斂)"]
@@ -92,7 +92,7 @@ class ReportExporter:
         buy_results = [r for r in results if r.get('Signal') in buy_signals]
         sell_results = [r for r in results if r.get('Signal') in sell_signals]
 
-        content = self.render_summary(buy_results, sell_results)
+        content = self.render_summary(buy_results, sell_results, extra_sections=extra_sections)
 
         with open(path, 'w', encoding='utf-8') as f:
             f.write(content)
@@ -101,7 +101,8 @@ class ReportExporter:
                        buy_results: List[Dict[str, Any]] = None, 
                        sell_results: List[Dict[str, Any]] = None,
                        tracking_buys: Optional[List[Dict[str, Any]]] = None,
-                       tracking_sells: Optional[List[Dict[str, Any]]] = None) -> str:
+                       tracking_sells: Optional[List[Dict[str, Any]]] = None,
+                       extra_sections: Optional[Dict[str, List[Dict[str, Any]]]] = None) -> str:
         """Renders the summary content with Buy/Sell sections and tracking."""
         template = self.jinja_env.get_template("summary.md.j2")
 
@@ -111,6 +112,10 @@ class ReportExporter:
         # Take Top 10 for display in report
         top_buys = sorted(buy_results, key=lambda x: x.get('momentum', 0), reverse=True)[:10]
         top_sells = sorted(sell_results, key=lambda x: x.get('momentum', 0), reverse=False)[:10]
+        extra_sections = extra_sections or {}
+        top_priority = sorted(extra_sections.get("priority", []), key=lambda x: (x.get('composite_score', 0), x.get('momentum', 0)), reverse=True)[:10]
+        top_houyi = sorted(extra_sections.get("houyi", []), key=lambda x: x.get('rally_pct', 0), reverse=True)[:10]
+        top_whale = sorted(extra_sections.get("whale", []), key=lambda x: x.get('weekly_momentum', 0), reverse=True)[:10]
         render_data = {
             "date": self._get_taiwan_now().strftime("%Y-%m-%d %H:%M:%S") + " (TST)",
             "buy_results": [self._format_result(r) for r in top_buys],
@@ -118,7 +123,13 @@ class ReportExporter:
             "sell_results": [self._format_result(r) for r in top_sells],
             "sell_count": len(sell_results),
             "tracking_buys": tracking_buys or [],
-            "tracking_sells": tracking_sells or []
+            "tracking_sells": tracking_sells or [],
+            "priority_results": [self._format_result(r) for r in top_priority],
+            "priority_count": len(extra_sections.get("priority", [])),
+            "houyi_results": [self._format_result(r) for r in top_houyi],
+            "houyi_count": len(extra_sections.get("houyi", [])),
+            "whale_results": [self._format_result(r) for r in top_whale],
+            "whale_count": len(extra_sections.get("whale", [])),
         }
 
         return template.render(**render_data)
@@ -127,7 +138,8 @@ class ReportExporter:
                             buy_results: List[Dict[str, Any]] = None, 
                             sell_results: List[Dict[str, Any]] = None,
                             tracking_buys: Optional[List[Dict[str, Any]]] = None,
-                            tracking_sells: Optional[List[Dict[str, Any]]] = None) -> str:
+                            tracking_sells: Optional[List[Dict[str, Any]]] = None,
+                            extra_sections: Optional[Dict[str, List[Dict[str, Any]]]] = None) -> str:
         """Renders the HTML summary content for high-quality emails."""
         template = self.jinja_env.get_template("summary.html.j2")
 
@@ -138,6 +150,10 @@ class ReportExporter:
         top_buys = sorted(buy_results, key=lambda x: x.get('momentum', 0), reverse=True)[:10]
         top_sells = sorted(sell_results, key=lambda x: x.get('momentum', 0), reverse=False)[:10]
         
+        extra_sections = extra_sections or {}
+        top_priority = sorted(extra_sections.get("priority", []), key=lambda x: (x.get('composite_score', 0), x.get('momentum', 0)), reverse=True)[:10]
+        top_houyi = sorted(extra_sections.get("houyi", []), key=lambda x: x.get('rally_pct', 0), reverse=True)[:10]
+        top_whale = sorted(extra_sections.get("whale", []), key=lambda x: x.get('weekly_momentum', 0), reverse=True)[:10]
         render_data = {
             "date": self._get_taiwan_now().strftime("%Y-%m-%d %H:%M:%S") + " (TST)",
             "buy_results": [self._format_result(r) for r in top_buys],
@@ -145,7 +161,13 @@ class ReportExporter:
             "sell_results": [self._format_result(r) for r in top_sells],
             "sell_count": len(sell_results),
             "tracking_buys": tracking_buys or [],
-            "tracking_sells": tracking_sells or []
+            "tracking_sells": tracking_sells or [],
+            "priority_results": [self._format_result(r) for r in top_priority],
+            "priority_count": len(extra_sections.get("priority", [])),
+            "houyi_results": [self._format_result(r) for r in top_houyi],
+            "houyi_count": len(extra_sections.get("houyi", [])),
+            "whale_results": [self._format_result(r) for r in top_whale],
+            "whale_count": len(extra_sections.get("whale", [])),
         }
 
         return template.render(**render_data)
@@ -159,5 +181,8 @@ class ReportExporter:
             "momentum": r.get('momentum') or r.get('daily_momentum') or 0,
             "energy": r.get('energy_level', 0),
             "squeeze_active": r.get('is_squeezed') or r.get('is_houyi') or r.get('is_whale'),
-            "signal": r.get('Signal', '觀望')
+            "signal": r.get('Signal', '觀望'),
+            "has_houyi": r.get('has_houyi', False),
+            "has_whale": r.get('has_whale', False),
+            "composite_score": r.get('composite_score', 0),
         }
