@@ -67,6 +67,16 @@ python3 scripts/analyze_tracking.py --csv recommendations.csv
 PYTHONPATH=src python3 -m squeeze.cli analyze-tracking --csv recommendations.csv
 ```
 
+### 單一個股命令
+```bash
+PYTHONPATH=src python3 -m squeeze.cli analyze --ticker 2330
+PYTHONPATH=src python3 -m squeeze.cli plot --ticker 2330
+```
+
+台股 CLI 會自動將純代碼轉成實際市場代號：
+*   `2330` -> `2330.TW`
+*   上櫃/興櫃代碼則會解析為 `.TWO`
+
 ## 檔案結構
 *   `src/squeeze/data/`: 數據抓取邏輯 (yfinance, ISIN)。
 *   `src/squeeze/engine/`: 核心運算引擎 (Indicators, Patterns)。

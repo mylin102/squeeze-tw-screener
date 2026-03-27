@@ -24,6 +24,23 @@ pip install ./squeeze
 squeeze-tw scan --export --plot --notify
 ```
 
+### 分析單一個股
+```bash
+# 可直接輸入台股代碼
+PYTHONPATH=src python3 -m squeeze.cli analyze --ticker 2330
+
+# 也相容完整 yfinance 代碼
+PYTHONPATH=src python3 -m squeeze.cli analyze --ticker 2330.TW
+```
+
+### 繪製單一個股圖表
+```bash
+PYTHONPATH=src python3 -m squeeze.cli plot --ticker 2330
+
+# 指定輸出路徑
+PYTHONPATH=src python3 -m squeeze.cli plot --ticker 2330 --output exports/2330.png
+```
+
 ### 檢視策略績效
 ```bash
 python3 scripts/analyze_tracking.py --csv recommendations.csv
