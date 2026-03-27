@@ -1,5 +1,6 @@
 import csv
 import json
+import tomllib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Dict, Any, Optional
@@ -27,6 +28,14 @@ class ReportExporter:
     def _get_taiwan_now(self) -> datetime:
         """Returns the current time in Taiwan (UTC+8)."""
         return datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8)))
+
+    def _get_app_version(self) -> str:
+        pyproject_path = Path(__file__).resolve().parents[3] / "pyproject.toml"
+        try:
+            with open(pyproject_path, "rb") as f:
+                return tomllib.load(f)["project"]["version"]
+        except Exception:
+            return "unknown"
 
     def export(self, results: List[Dict[str, Any]], output_base_dir: Path, extra_sections: Optional[Dict[str, List[Dict[str, Any]]]] = None) -> Dict[str, Path]:
         """
@@ -118,6 +127,7 @@ class ReportExporter:
         top_whale = sorted(extra_sections.get("whale", []), key=lambda x: x.get('weekly_momentum', 0), reverse=True)[:10]
         render_data = {
             "date": self._get_taiwan_now().strftime("%Y-%m-%d %H:%M:%S") + " (TST)",
+            "app_version": self._get_app_version(),
             "buy_results": [self._format_result(r) for r in top_buys],
             "buy_count": len(buy_results),
             "sell_results": [self._format_result(r) for r in top_sells],
@@ -156,6 +166,7 @@ class ReportExporter:
         top_whale = sorted(extra_sections.get("whale", []), key=lambda x: x.get('weekly_momentum', 0), reverse=True)[:10]
         render_data = {
             "date": self._get_taiwan_now().strftime("%Y-%m-%d %H:%M:%S") + " (TST)",
+            "app_version": self._get_app_version(),
             "buy_results": [self._format_result(r) for r in top_buys],
             "buy_count": len(buy_results),
             "sell_results": [self._format_result(r) for r in top_sells],
