@@ -446,6 +446,10 @@ class PerformanceTracker:
         """
         Updates performance for all active tracking items.
         Calculates multi-window returns from price history.
+
+        Second pass: also backfills return_5d/10d/14d/20d for completed rows
+        that still carry NaN (e.g. nightly job missed a run near the 14-day
+        completion boundary).  Production ranking columns are never touched.
         """
         df = self._load_db()
         if df.empty:
@@ -523,6 +527,65 @@ class PerformanceTracker:
                 results.append(df.loc[index].to_dict())
             except Exception as e:
                 logger.error(f"Error updating {ticker}: {e}")
+
+        # ── Second pass: backfill return_Nd for completed rows still missing them ──
+        # Catches rows completed before all windows could be computed
+        # (e.g. nightly job missed runs near the 14-day completion boundary).
+        # NOTE: production ranking columns (ranking_score, feature_schema_version)
+        #       are deliberately not touched here.
+        _return_cols = ['return_5d', 'return_10d', 'return_14d', 'return_20d']
+        completed_nan = df[
+            (df['status'] == 'completed') &
+            df[_return_cols].isnull().any(axis=1)
+        ]
+        if not completed_nan.empty:
+            bf_tickers = completed_nan['ticker'].unique().tolist()
+            # Fetch only tickers not already downloaded in this run
+            new_tickers = [t for t in bf_tickers if t not in tickers]
+            bf_history: dict = {}
+            if new_tickers:
+                extra = download_market_data(new_tickers, period="1y")
+                if not extra.empty:
+                    for t in new_tickers:
+                        try:
+                            if len(new_tickers) == 1:
+                                bf_history[t] = extra.dropna(subset=['Close']).copy()
+                            elif t in extra.columns.get_level_values(0):
+                                bf_history[t] = extra[t].dropna(subset=['Close']).copy()
+                        except Exception:
+                            pass
+            # Add tickers already fetched in the first pass
+            if not history_data.empty:
+                for t in tickers:
+                    try:
+                        if len(tickers) == 1:
+                            bf_history[t] = history_data.dropna(subset=['Close']).copy()
+                        elif t in history_data.columns.get_level_values(0):
+                            bf_history[t] = history_data[t].dropna(subset=['Close']).copy()
+                    except Exception:
+                        pass
+            n_backfilled = 0
+            for idx, row in completed_nan.iterrows():
+                t = row['ticker']
+                th = bf_history.get(t)
+                if th is None or th.empty:
+                    continue
+                try:
+                    rec_date = datetime.strptime(str(row['date']), "%Y-%m-%d").replace(
+                        tzinfo=timezone(timedelta(hours=8)))
+                    mw = _compute_multi_window_returns(th, rec_date)
+                    for k, v in mw.items():
+                        if k in _return_cols and k in df.columns and pd.isna(df.at[idx, k]):
+                            val = float(v) if isinstance(v, (bool, np.bool_)) else v
+                            if val is not None and not (isinstance(val, float) and np.isnan(val)):
+                                df.at[idx, k] = val
+                    n_backfilled += 1
+                except Exception as exc:
+                    logger.debug(f"Backfill return_Nd failed for {t}: {exc}")
+            if n_backfilled:
+                logger.info(
+                    f"Backfilled return_Nd for {n_backfilled} completed rows with NaN windows"
+                )
 
         df.to_csv(self.db_path, index=False)
         return results

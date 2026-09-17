@@ -99,6 +99,11 @@ def build_tracking_report(df: pd.DataFrame) -> Dict[str, Any]:
     report["by_score_deduped"] = _build_score_buckets(deduped)
     report["by_feature_deduped"] = _build_feature_comparison(deduped)
 
+    # 7. SELL shadow research features (computed in-memory only, NOT written to CSV)
+    #    Four SELL-specific prev_momentum features designed for signals where
+    #    prev_momentum is always negative (BUY's absolute-value buckets don't apply).
+    report["sell_shadow"] = _build_sell_shadow_features(completed)
+
     report["recommendations"] = _derive_recommendations(report)
     return report
 
@@ -176,6 +181,49 @@ def format_tracking_report(report: Dict[str, Any]) -> str:
                 f"{row['avg_rs_slope']:>+7.4f}"
             )
 
+    # SELL shadow research features
+    shadow = report.get("sell_shadow", {})
+    if shadow and shadow.get("n_sell", 0) > 0:
+        lines.append("")
+        lines.append(f"[Shadow Research] SELL prev_momentum Analysis (n={shadow['n_sell']}, research only — not in production)")
+        lines.append(f"  {shadow.get('note', '')}")
+
+        abs_rows = shadow.get("pm_abs_buckets", [])
+        if abs_rows:
+            lines.append("")
+            lines.append("  A. abs(prev_momentum) × SELL win rate")
+            lines.append(f"  {'abs(pm)':<10} {'n':>3} {'win%':>6} {'avg':>7} {'med':>7}")
+            for r in abs_rows:
+                lines.append(f"  {r['bucket']:<10} {r['n']:>3} {r['win_rate']:>6.1f} "
+                             f"{r['avg_return']:>7.2f} {r['med_return']:>7.2f}")
+
+        delta_rows = shadow.get("mom_delta_buckets", [])
+        if delta_rows:
+            lines.append("")
+            lines.append("  B. mom_delta (momentum − prev_momentum) × SELL win rate")
+            lines.append(f"  {'delta':<10} {'n':>3} {'win%':>6} {'avg':>7} {'med':>7}")
+            for r in delta_rows:
+                lines.append(f"  {r['bucket']:<10} {r['n']:>3} {r['win_rate']:>6.1f} "
+                             f"{r['avg_return']:>7.2f} {r['med_return']:>7.2f}")
+
+        deep_rows = shadow.get("deepening_flag", [])
+        if deep_rows:
+            lines.append("")
+            lines.append("  C. Deepening flag (momentum < prev_momentum)")
+            lines.append(f"  {'state':<12} {'n':>3} {'win%':>6} {'avg':>7} {'med':>7}")
+            for r in deep_rows:
+                lines.append(f"  {r['bucket']:<12} {r['n']:>3} {r['win_rate']:>6.1f} "
+                             f"{r['avg_return']:>7.2f} {r['med_return']:>7.2f}")
+
+        rd_rows = shadow.get("regime_x_deepening", [])
+        if rd_rows:
+            lines.append("")
+            lines.append("  D. Regime × Deepening × SELL")
+            lines.append(f"  {'regime':<15} {'state':<12} {'n':>3} {'win%':>6} {'avg':>7}")
+            for r in rd_rows:
+                lines.append(f"  {r['regime']:<15} {r['state']:<12} {r['n']:>3} "
+                             f"{r['win_rate']:>6.1f} {r['avg_return']:>7.2f}")
+
     recommendations = report.get("recommendations", [])
     if recommendations:
         lines.append("")
@@ -183,6 +231,7 @@ def format_tracking_report(report: Dict[str, Any]) -> str:
         for item in recommendations:
             lines.append(f"- {item}")
     return "\n".join(lines)
+
 
 
 # ---------------------------------------------------------------------------
@@ -359,8 +408,108 @@ def _build_pattern_combos(df: pd.DataFrame) -> List[Dict[str, Any]]:
     return grouped.to_dict("records")
 
 
+def _build_sell_shadow_features(df: pd.DataFrame) -> dict:
+    """
+    Research shadow section for SELL signals only.
+
+    Computes four SELL-specific prev_momentum features IN MEMORY — results are
+    included in the tracking report text but are NEVER written back to the CSV.
+    Production ranking (ranking_score, feature_schema_version) is untouched.
+
+    Background: SELL prev_momentum is nearly always negative, so BUY's absolute-
+    value quartile buckets are meaningless on the sell side.  Four alternatives:
+
+      A. abs(prev_momentum) — negative momentum strength
+      B. mom_delta = momentum − prev_momentum — acceleration direction
+      C. deepening = (momentum < prev_momentum) — continuing decline flag
+      D. regime × deepening cross-tab
+    """
+    sell = df[df["type"] == "sell"].copy()
+    if sell.empty or "prev_momentum" not in sell.columns:
+        return {}
+
+    sell["prev_momentum"] = pd.to_numeric(sell["prev_momentum"], errors="coerce")
+    sell["momentum"]      = pd.to_numeric(sell["momentum"],      errors="coerce")
+    sell["strategy_return_pct"] = pd.to_numeric(sell["strategy_return_pct"], errors="coerce")
+    sell["win"] = (sell["strategy_return_pct"] > 0)
+
+    # Derived features (in-memory only)
+    sell["pm_abs"]    = sell["prev_momentum"].abs()
+    sell["mom_delta"] = sell["momentum"] - sell["prev_momentum"]
+    sell["deepening"] = (sell["momentum"] < sell["prev_momentum"])
+
+    def _rows(grp_col: str, bins, labels) -> list:
+        sell[grp_col + "_bucket"] = pd.cut(sell[grp_col], bins=bins, labels=labels)
+        out = []
+        for lbl in labels:
+            g = sell[sell[grp_col + "_bucket"] == lbl]
+            if len(g) == 0:
+                continue
+            out.append({
+                "bucket": str(lbl),
+                "n": int(len(g)),
+                "win_rate": round(float(g["win"].mean()) * 100, 1),
+                "avg_return": round(float(g["strategy_return_pct"].mean()), 2),
+                "med_return": round(float(g["strategy_return_pct"].median()), 2),
+            })
+        return out
+
+    # A. abs(prev_momentum) buckets
+    abs_rows = _rows(
+        "pm_abs",
+        bins=[-0.001, 5, 10, 20, 30, 9999],
+        labels=["0-5", "5-10", "10-20", "20-30", ">30"],
+    )
+
+    # B. mom_delta buckets
+    delta_rows = _rows(
+        "mom_delta",
+        bins=[-9999, -10, 0, 10, 9999],
+        labels=["<-10", "-10~0", "0~10", ">10"],
+    )
+
+    # C. deepening flag
+    deep_rows = []
+    for flag, label in [(True, "deepening"), (False, "rebounding")]:
+        g = sell[sell["deepening"] == flag]
+        if len(g) == 0:
+            continue
+        deep_rows.append({
+            "bucket": label,
+            "n": int(len(g)),
+            "win_rate": round(float(g["win"].mean()) * 100, 1),
+            "avg_return": round(float(g["strategy_return_pct"].mean()), 2),
+            "med_return": round(float(g["strategy_return_pct"].median()), 2),
+        })
+
+    # D. regime × deepening cross-tab
+    regime_deep_rows = []
+    for regime in sell["market_regime"].dropna().unique():
+        for flag, label in [(True, "deepening"), (False, "rebounding")]:
+            g = sell[(sell["market_regime"] == regime) & (sell["deepening"] == flag)]
+            if len(g) == 0:
+                continue
+            regime_deep_rows.append({
+                "regime": str(regime),
+                "state": label,
+                "n": int(len(g)),
+                "win_rate": round(float(g["win"].mean()) * 100, 1),
+                "avg_return": round(float(g["strategy_return_pct"].mean()), 2),
+            })
+
+    return {
+        "note": "Shadow research only — not written to CSV, no production impact",
+        "n_sell": int(len(sell)),
+        "pm_abs_buckets": abs_rows,
+        "mom_delta_buckets": delta_rows,
+        "deepening_flag": deep_rows,
+        "regime_x_deepening": regime_deep_rows,
+    }
+
+
 def _build_rs_quantiles(df: pd.DataFrame) -> List[Dict[str, Any]]:
     """Bucket completed records by RS slope (5d) quantile and show performance."""
+
     slope_col = "rs_slope_5d" if "rs_slope_5d" in df.columns else "rs_slope"
     if slope_col not in df.columns or df[slope_col].isna().all():
         return []
